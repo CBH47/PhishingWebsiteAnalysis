@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="/image/common.css" />
+    <link rel="stylesheet" href="/image/style.css" />
+    <title></title>
+    <script>
+(function() {
+  const supported = {
+    'en': 'en-cn',
+    'ja': 'jp-cn',
+    'pt': 'pt-cn',
+    'fa': 'bs-cn',
+    'ar': 'alb-cn',
+    'es': 'xby-cn',
+    'de': 'dg-cn',
+    'ru': 'els-cn',
+    'tr': 'trq-cn',
+    'vi': 'yn-cn',
+    'fr': 'fa-cn',
+    'zh-hant': 'fanti-cn',
+    'zh-tw': 'fanti-cn',
+    'zh-hk': 'fanti-cn',
+    'zh-mo': 'fanti-cn',
+    'zh': 'fanti-cn'
+  };
+
+  function getPreferredLangs() {
+    const arr = [];
+    if (Array.isArray(navigator.languages)) arr.push(...navigator.languages);
+    if (navigator.language) arr.push(navigator.language);
+    if (!arr.length) arr.push('en');
+    const out = arr.map(l => String(l || '').trim().toLowerCase()).filter(Boolean);
+    console.log('[auto-lang] navigator:', arr, 'normalized:', out);
+    return out;
+  }
+
+  function normalizeCandidates(langs) {
+    const out = [];
+    langs.forEach(l => {
+      out.push(l);
+      if (l.startsWith('zh')) {
+        if (/-hant|traditional|-tw|-hk|-mo/.test(l)) {
+          out.push('zh-hant');
+        } else {
+          out.push('zh');
+        }
+      }
+      const base = l.split('-')[0];
+      if (base && base !== l) out.push(base);
+    });
+    const dedup = Array.from(new Set(out));
+    console.log('[auto-lang] candidates:', dedup);
+    return dedup;
+  }
+
+  function pickMatch(candidates) {
+    for (const c of candidates) {
+      if (supported[c]) {
+        console.log('[auto-lang] matched exact:', c, '->', supported[c]);
+        return supported[c];
+      }
+    }
+    for (const c of candidates) {
+      const base = c.split('-')[0];
+      if (supported[base]) {
+        console.log('[auto-lang] matched base:', base, '->', supported[base]);
+        return supported[base];
+      }
+    }
+    console.warn('[auto-lang] no match');
+    return '';
+  }
+
+  function redirectToSet(langCode) {
+    // 如果此路径不工作，请改成你真实可访问的路由
+    var url = '/index/lang/set.html?lang=' + encodeURIComponent(langCode);
+    console.log('[auto-lang] redirect to:', url);
+    window.location.replace(url);
+  }
+
+  function run() {
+    console.log('[auto-lang] start');
+    const candidates = normalizeCandidates(getPreferredLangs());
+    const match = pickMatch(candidates);
+   if (!match) {
+console.warn('[auto-lang] fallback to EN');
+redirectToSet('en-cn');
+return;
+}
+
+    // 暂时注释掉避免拦截
+     const cur = document.documentElement.getAttribute('data-lang') ||
+                 localStorage.getItem('site_lang_code') || '';
+     if (cur && cur === match) {
+       console.log('[auto-lang] already set:', cur);
+       return;
+     }
+
+    // 记录当前选择
+    try { localStorage.setItem('site_lang_code', match); } catch(e) {}
+
+    redirectToSet(match);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run, { once: true });
+  } else {
+    run();
+  }
+})();
+</script>
+    <style>
+      body {
+        padding: 0px;
+        margin: 0px;
+      }
+      .wrap {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background: url("/image/2.jpg") no-repeat center center;
+        background-size: cover;
+        font-family: Arial, sans-serif;
+      }
+      a {
+        color: #fff;
+        text-decoration: none;
+      }
+      /* .buttons-container {
+        position: relative;
+        width: 100%;
+        max-width: 375px;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      } */
+      .login-btn,
+      .register-btn {
+        width: 90%;
+        height: 60px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        cursor: pointer;
+        transition: transform 0.3s;
+        text-align: center;
+        margin: 0 auto;
+        align-content: center;
+        margin-top: 20px;
+      }
+      @media screen and (min-width: 768px) {
+        .wrap {
+          max-width: 375px;
+          margin: 0 auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="buttons-container wrap">
+      <div class="header-wrap" style="position: inherit">
+        <div class="pad20"><div class="lang text-r">
+  <div class="btnlang">
+    <a href="/index/index/lang.html">
+      <img src="/image/.jpg" class="lang-ico" style="display: none" />
+            <img src="/image/lang.png" width="18" class="q-mx-sm" />
+    </a>
+  </div>
+  <!--
+	<ul class="list-lang">
+		<li class="flex">
+			<img src="/image/en-us.jpg">&nbsp;
+			<a href="/index/Passport/index.html?lang=en-us">English</a>
+		</li>
+	</ul>
+	-->
+</div>
+</div>
+      </div>
+      <div style="margin-top: 80%; text-align: center">
+        <div class="login-btn" style="width: 90%; background: url(/image/5.png) no-repeat; background-size: 100%">
+          <a href="/index/passport/login.html" class="block pad20">Login</a>
+        </div>
+        <div class="register-btn" style="width: 90%; background: url(/image/6.png) no-repeat; background-size: 100%">
+          <a href="/index/passport/signup.html" class="block pad20">Register</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
